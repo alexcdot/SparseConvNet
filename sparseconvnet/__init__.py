@@ -19,6 +19,7 @@ from .identity import Identity
 from .inputBatch import InputBatch
 from .ioLayers import InputLayer, OutputLayer, BLInputLayer, BLOutputLayer, InputLayerInput
 from .maxPooling import MaxPooling
+from .roiPooling import RoiPooling
 from .metadata import Metadata
 from .networkArchitectures import *
 from .networkInNetwork import NetworkInNetwork

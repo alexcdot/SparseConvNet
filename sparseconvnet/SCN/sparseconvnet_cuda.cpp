@@ -31,6 +31,7 @@ template class Metadata<6>;
 #include "CPU/IOLayers.cpp"
 #include "CPU/LeakyReLU.cpp"
 #include "CPU/MaxPooling.cpp"
+#include "CPU/RoiPooling.cpp"
 #include "CPU/NetworkInNetwork.cpp"
 #include "CPU/SparseToDense.cpp"
 #include "CPU/UnPooling.cpp"
@@ -44,6 +45,7 @@ template class Metadata<6>;
 #include "CUDA/IOLayers.cpp"
 #include "CUDA/LeakyReLU.cpp"
 #include "CUDA/MaxPooling.cpp"
+#include "CUDA/RoiPooling.cpp"
 #include "CUDA/NetworkInNetwork.cpp"
 #include "CUDA/SparseToDense.cpp"
 #include "CUDA/UnPooling.cpp"
@@ -553,6 +555,36 @@ void MaxPooling_updateGradInput(
         d_input_features, output_features, d_output_features, nFeaturesToDrop);
 }
 template <Int Dimension>
+void RoiPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
+                             at::Tensor &poolSize, at::Tensor &poolStride,
+                             Metadata<Dimension> &m, at::Tensor &input_features,
+                             at::Tensor &output_features,
+                             long nFeaturesToDrop) {
+  if (input_features.device().type() == torch::kCUDA)
+    cuda_RoiPooling_updateOutput<float, Dimension>(
+        inputSize, outputSize, poolSize, poolStride, m, input_features,
+        output_features, nFeaturesToDrop);
+  else
+    cpu_RoiPooling_updateOutput<float, Dimension>(
+        inputSize, outputSize, poolSize, poolStride, m, input_features,
+        output_features, nFeaturesToDrop);
+}
+template <Int Dimension>
+void RoiPooling_updateGradInput(
+    at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
+    at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
+    at::Tensor &d_input_features, at::Tensor &output_features,
+    at::Tensor &d_output_features, long nFeaturesToDrop) {
+  if (d_output_features.device().type() == torch::kCUDA)
+    cuda_RoiPooling_updateGradInput<float, Dimension>(
+        inputSize, outputSize, poolSize, poolStride, m, input_features,
+        d_input_features, output_features, d_output_features, nFeaturesToDrop);
+  else
+    cpu_RoiPooling_updateGradInput<float, Dimension>(
+        inputSize, outputSize, poolSize, poolStride, m, input_features,
+        d_input_features, output_features, d_output_features, nFeaturesToDrop);
+}
+template <Int Dimension>
 void RandomizedStrideMaxPooling_updateOutput(
     at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
@@ -751,6 +783,17 @@ void UnPooling_updateGradInput(at::Tensor &inputSize, at::Tensor &outputSize,
       at::Tensor & input_features, at::Tensor & output_features,               \
       long nFeaturesToDrop);                                                   \
   template void MaxPooling_updateGradInput<DIMENSION>(                         \
+      at::Tensor & inputSize, at::Tensor & outputSize, at::Tensor & poolSize,  \
+      at::Tensor & poolStride, Metadata<DIMENSION> & m,                        \
+      at::Tensor & input_features, at::Tensor & d_input_features,              \
+      at::Tensor & output_features, at::Tensor & d_output_features,            \
+      long nFeaturesToDrop);                                                   \
+  template void RoiPooling_updateOutput<DIMENSION>(                            \
+      at::Tensor & inputSize, at::Tensor & outputSize, at::Tensor & poolSize,  \
+      at::Tensor & poolStride, Metadata<DIMENSION> & m,                        \
+      at::Tensor & input_features, at::Tensor & output_features,               \
+      long nFeaturesToDrop);                                                   \
+  template void RoiPooling_updateGradInput<DIMENSION>(                         \
       at::Tensor & inputSize, at::Tensor & outputSize, at::Tensor & poolSize,  \
       at::Tensor & poolStride, Metadata<DIMENSION> & m,                        \
       at::Tensor & input_features, at::Tensor & d_input_features,              \

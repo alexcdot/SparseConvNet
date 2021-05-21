@@ -17,6 +17,7 @@
 #include "CUDA/IOLayers.cu"
 #include "CUDA/LeakyReLU.cu"
 #include "CUDA/MaxPooling.cu"
+#include "CUDA/RoiPooling.cu"
 #include "CUDA/SparseToDense.cu"
 #include "CUDA/UnPooling.cu"
 
@@ -91,6 +92,15 @@ template void cuda_MaxPooling_ForwardPass<float>(float *input_features,
 						 Int output_stride,
 						 RuleBook _rules);
 template void cuda_MaxPooling_BackwardPass<float>(
+    float *input_features, float *d_input_features, float *output_features,
+    float *d_output_features, Int nPlanes, Int input_stride, Int output_stride,
+    RuleBook _rules);
+template void cuda_RoiPooling_ForwardPass<float>(float *input_features,
+						 float *output_features,
+						 Int nPlanes, Int input_stride,
+						 Int output_stride,
+						 RuleBook _rules);
+template void cuda_RoiPooling_BackwardPass<float>(
     float *input_features, float *d_input_features, float *output_features,
     float *d_output_features, Int nPlanes, Int input_stride, Int output_stride,
     RuleBook _rules);

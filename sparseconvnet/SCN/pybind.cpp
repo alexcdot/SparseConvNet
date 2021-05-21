@@ -111,6 +111,17 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
                   at::Tensor&, long)) &
             MaxPooling_updateGradInput,
         "");
+  m.def("RoiPooling_updateOutput",
+        (void (*)(at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&,
+                  Metadata<Dimension> &, at::Tensor&, at::Tensor&, long)) &
+            RoiPooling_updateOutput,
+        "");
+  m.def("RoiPooling_updateGradInput",
+        (void (*)(at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&,
+                  Metadata<Dimension> &, at::Tensor&, at::Tensor&, at::Tensor&,
+                  at::Tensor&, long)) &
+            RoiPooling_updateGradInput,
+        "");
   m.def("RandomizedStrideMaxPooling_updateOutput",
         (void (*)(at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&,
                   Metadata<Dimension> &, at::Tensor&, at::Tensor&, long)) &

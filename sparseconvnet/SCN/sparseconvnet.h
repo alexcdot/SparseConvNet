@@ -206,6 +206,17 @@ void MaxPooling_updateGradInput(
     at::Tensor &d_input_features, at::Tensor &output_features,
     at::Tensor &d_output_features, long nFeaturesToDrop);
 template <Int Dimension>
+void RoiPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
+                             at::Tensor &poolSize, at::Tensor &poolStride,
+                             Metadata<Dimension> &m, at::Tensor &input_features,
+                             at::Tensor &output_features, long nFeaturesToDrop);
+template <Int Dimension>
+void RoiPooling_updateGradInput(
+    at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
+    at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
+    at::Tensor &d_input_features, at::Tensor &output_features,
+    at::Tensor &d_output_features, long nFeaturesToDrop);
+template <Int Dimension>
 void RandomizedStrideMaxPooling_updateOutput(
     at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,
     at::Tensor &poolStride, Metadata<Dimension> &m, at::Tensor &input_features,
