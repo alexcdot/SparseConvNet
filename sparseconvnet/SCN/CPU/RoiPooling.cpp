@@ -12,10 +12,9 @@ void RoiPooling_ForwardPass(T *input_features, T *output_features, Int nPlanes,
                             Int input_stride, Int output_stride, const Int *rules,
                             Int nHot) {
   Int outSite;
-  cout << "nHot: " << nHot << endl;
-// #pragma omp parallel for private(outSite)
+#pragma omp parallel for private(outSite)
   for (outSite = 0; outSite < nHot; outSite++) {
-    cout << "outSite " << outSite <<  ": rules[2 * outSite]: " << rules[2 * outSite] * input_stride << " rules[2 * outSite + 1]: " << rules[2 * outSite + 1] * output_stride << endl;
+    // cout << "outSite " << outSite <<  ": rules[2 * outSite]: " << rules[2 * outSite] * input_stride << " rules[2 * outSite + 1]: " << rules[2 * outSite + 1] * output_stride << endl;
     Int i = rules[2 * outSite] * input_stride;
     Int o = rules[2 * outSite + 1] * output_stride;
     for (Int plane = 0; plane < nPlanes; plane++)
@@ -39,29 +38,77 @@ void RoiPooling_BackwardPass(T *input_features, T *d_input_features,
   }
 }
 
+/* inputSize: input_spatial size, outputSize: output_spatial_size (not flatteend)
+ */
 template <typename T, Int Dimension>
 void cpu_RoiPooling_updateOutput(
     /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
-    /*long*/ at::Tensor &poolSize,
-    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*long*/ at::Tensor &poolSize, /*long*/ at::Tensor &inputSpatialLocations,
+    /*long*/ at::Tensor &roiBoxes,
+    Metadata<Dimension> &m,
     /*float*/ at::Tensor &input_features,
     /*float*/ at::Tensor &output_features, long nFeaturesToDrop) {
 
-  Int nPlanes = input_features.size(1) - nFeaturesToDrop;
   const auto &_rules =
-      m.getRuleBook(inputSize, outputSize, poolSize, poolStride, true);
-  Int nActive = m.getNActive(outputSize);
-  output_features.resize_({nActive, input_features.size(1) - nFeaturesToDrop});
+      m.getRuleBook(inputSize, outputSize, poolSize, poolSize, true);
+
+  auto oS = outputSize.data_ptr<long>(); // output shape
+  Int nActive = roiBoxes.size(0) * oS[0] * oS[1];  
+  output_features.resize_({nActive, input_features.size(1)});
   output_features.zero_();
 
   auto iF = input_features.data_ptr<T>() + nFeaturesToDrop;
   auto oF = output_features.data_ptr<T>();
 
-  for (auto &r : _rules) {
-    Int nHot = r.size() / 2;
-    cout << "input_feautres.stride(0): " << input_features.stride(0) << " output_features.stride(0): " << output_features.stride(0) << " &r[0]: " << &r[0] << endl;
-    RoiPooling_ForwardPass<T>(iF, oF, nPlanes, input_features.stride(0),
-                              output_features.stride(0), &r[0], nHot);
+  auto rB = roiBoxes.data_ptr<long>();
+  auto iLoc = inputSpatialLocations.data_ptr<long>();
+
+  for (int i = 0; i < roiBoxes.size(0); i++) {
+    for (int j = 0; j < m.getSpatialLocations(inputSize).size(0); j++) {
+      int batchIdx = rB[5 * i], xmin = rB[5 * i + 1], ymin = rB[5 * i + 2], xmax = rB[5 * i + 3], ymax = rB[5 * i + 4];
+      if (iLoc[3*j + 2] != batchIdx) {
+        continue;
+      }
+      if (iLoc[3*j] < ymin || iLoc[3*j] > ymax || iLoc[3*j+1] < xmin || iLoc[3*j+1] > xmax) {
+        continue;
+      }
+
+      // get pool output idx (row-order)
+      int poolIdxX = -1, poolIdxY = -1;
+      int width = xmax - xmin + 1, height = ymax - ymin + 1;
+      int xIdx = 0, xRem = width % oS[0];
+      for (int k = 0; k < oS[0]; k++) {
+          if (xRem > 0) {
+            xIdx += width / oS[0] + 1;
+            xRem --;
+          } else {
+            xIdx += width / oS[0];
+          }
+          if (iLoc[3*j+1] - xmin <= xIdx - 1) {
+            poolIdxX = k;
+            break;
+          }
+      }
+      int yIdx = 0, yRem = height % oS[1];
+      for (int k = 0; k < oS[1]; k++) {
+          if (yRem > 0) {
+            yIdx += height / oS[1] + 1;
+            yRem --;
+          } else {
+            yIdx += height / oS[1];
+          }
+          if (iLoc[3*j] - ymin <= yIdx - 1) {
+            poolIdxY = k;
+            break;
+          }
+      }
+      
+      int poolIdx = batchIdx * oS[0] * oS[1] + poolIdxY * oS[0] + poolIdxX;
+      
+      if (oF[poolIdx] < iF[j]) {
+        oF[poolIdx] = iF[j];
+      }
+    }
   }
 }
 template <typename T, Int Dimension>
@@ -85,6 +132,7 @@ void cpu_RoiPooling_updateGradInput(
   auto diF = d_input_features.data_ptr<T>();
   auto doF = d_output_features.data_ptr<T>();
 
+  /* number of iterations is equal to the poolSize squared */
   for (auto &r : _rules) {
     Int nHot = r.size() / 2;
     RoiPooling_BackwardPass<T>(iF, diF, oF, doF, nPlanes,

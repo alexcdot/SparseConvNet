@@ -364,11 +364,11 @@ void MaxPooling_updateGradInput(
 }
 template <Int Dimension>
 void RoiPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
-                             at::Tensor &poolSize, at::Tensor &poolStride,
+                             at::Tensor &poolSize, at::Tensor &poolStride, at::Tensor &roiBoxes,
                              Metadata<Dimension> &m, at::Tensor &input_features,
                              at::Tensor &output_features, long nFeaturesToDrop) {
   cpu_RoiPooling_updateOutput<float, Dimension>(
-      inputSize, outputSize, poolSize, poolStride, m, input_features,
+      inputSize, outputSize, poolSize, poolStride, roiBoxes, m, input_features,
       output_features, nFeaturesToDrop);
 }
 template <Int Dimension>
@@ -555,7 +555,8 @@ void UnPooling_updateGradInput(at::Tensor &inputSize, at::Tensor &outputSize,
       long nFeaturesToDrop);                                                   \
   template void RoiPooling_updateOutput<DIMENSION>(                            \
       at::Tensor &inputSize, at::Tensor &outputSize, at::Tensor &poolSize,        \
-      at::Tensor &poolStride, Metadata<DIMENSION> & m,                          \
+      at::Tensor &poolStride, at::Tensor &roiBoxes,                              \
+      Metadata<DIMENSION> & m,                                               \
       at::Tensor &input_features, at::Tensor &output_features,                   \
       long nFeaturesToDrop);                                                   \
   template void RoiPooling_updateGradInput<DIMENSION>(                         \

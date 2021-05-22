@@ -17,8 +17,9 @@ void cuda_RoiPooling_BackwardPass(T *input_features, T *d_input_features,
 template <typename T, Int Dimension>
 void cuda_RoiPooling_updateOutput(
     /*long*/ at::Tensor &inputSize, /*long*/ at::Tensor &outputSize,
-    /*long*/ at::Tensor &poolSize,
-    /*long*/ at::Tensor &poolStride, Metadata<Dimension> &m,
+    /*long*/ at::Tensor &poolSize, /*long*/ at::Tensor &poolStride,
+    /*long*/ at::Tensor &roiBoxes,
+    Metadata<Dimension> &m,
     /*cuda float*/ at::Tensor &input_features,
     /*cuda float*/ at::Tensor &output_features, long nFeaturesToDrop) {
 

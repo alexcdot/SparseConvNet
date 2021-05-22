@@ -112,7 +112,7 @@ template <Int Dimension> void dimension(py::module &m, const char *name) {
             MaxPooling_updateGradInput,
         "");
   m.def("RoiPooling_updateOutput",
-        (void (*)(at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&,
+        (void (*)(at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&, at::Tensor&,
                   Metadata<Dimension> &, at::Tensor&, at::Tensor&, long)) &
             RoiPooling_updateOutput,
         "");

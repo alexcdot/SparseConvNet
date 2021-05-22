@@ -208,6 +208,7 @@ void MaxPooling_updateGradInput(
 template <Int Dimension>
 void RoiPooling_updateOutput(at::Tensor &inputSize, at::Tensor &outputSize,
                              at::Tensor &poolSize, at::Tensor &poolStride,
+                             at::Tensor &roiBoxes,
                              Metadata<Dimension> &m, at::Tensor &input_features,
                              at::Tensor &output_features, long nFeaturesToDrop);
 template <Int Dimension>

@@ -20,6 +20,7 @@ class RoiPoolingFunction(Function):
             input_spatial_size,
             output_spatial_size,
             dimension,
+            roi_boxes,
             pool_size,
             pool_stride,
             nFeaturesToDrop):
@@ -31,7 +32,8 @@ class RoiPoolingFunction(Function):
             input_spatial_size,
             output_spatial_size,
             pool_size,
-            pool_stride,
+            input_metadata.getSpatialLocations(input_spatial_size),
+            roi_boxes,
             input_metadata,
             input_features,
             output_features,
@@ -69,33 +71,29 @@ class RoiPoolingFunction(Function):
 
 
 class RoiPooling(Module):
-    def __init__(self, dimension, pool_size, pool_stride, nFeaturesToDrop=0):
+    def __init__(self, dimension, pool_size, pool_stride, out_size, nFeaturesToDrop=0):
         super(RoiPooling, self).__init__()
         self.dimension = dimension
         self.pool_size = toLongTensor(dimension, pool_size)
         self.pool_stride = toLongTensor(dimension, pool_stride)
         self.nFeaturesToDrop = nFeaturesToDrop
+        self.out_size = torch.tensor([out_size, out_size])
 
-    def forward(self, input, ):
+    def forward(self, input, roi_boxes):
         output = SparseConvNetTensor()
         output.metadata = input.metadata
-        output.spatial_size = (
-            input.spatial_size - self.pool_size) // self.pool_stride + 1
-        assert ((output.spatial_size - 1) * self.pool_stride +
-                self.pool_size == input.spatial_size).all()
+        output.spatial_size = self.out_size
         output.features = RoiPoolingFunction.apply(
             input.features,
             input.metadata,
             input.spatial_size,
             output.spatial_size,
             self.dimension,
+            roi_boxes,
             self.pool_size,
             self.pool_stride,
-            self.nFeaturesToDrop)
+            self.nFeaturesToDrop)        
         return output
-
-    def input_spatial_size(self, out_size):
-        return (out_size - 1) * self.pool_stride + self.pool_size
 
     def __repr__(self):
         s = 'RoiPooling'
