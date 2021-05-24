@@ -2,6 +2,8 @@
 
 This is the PyTorch library for training Submanifold Sparse Convolutional Networks.
 
+For CS179 TAs, please read the `INSTRUCTIONS.md` file for demo details.
+
 ## Spatial sparsity
 
 This library brings [Spatially-sparse convolutional networks](https://github.com/btgraham/SparseConvNet) to PyTorch. Moreover, it introduces **Submanifold Sparse Convolutions**, that can be used to build computationally efficient sparse VGG/ResNet/DenseNet-style networks.

@@ -6,6 +6,7 @@ if __name__ == '__main__':
     device = 'cuda:0' if use_cuda else 'cpu'
 
     out_size = 3
+    # dimension = 2, pool_size = 3, pool_stride = 1, out_size = 3
     pooling_layer = scn.RoiPooling(2, out_size, 1, out_size).to(device)
 
     sparse_to_dense = scn.Sequential(

@@ -9,5 +9,9 @@
 rm -rf build/ dist/ sparseconvnet.egg-info sparseconvnet_SCN*.so
 pip3 install --user torch torchvision
 python3 setup.py develop --user
+# Run max pooling demo (demo is written by us, implementation isn't)
+printf "\nRunning max pooling demo\n\n"
 python3 examples/max_pooling.py
+# Run ROI pooling demo (demo and implementation written by us)
+printf "\nRunning ROI pooling demo\n\n"
 python3 examples/roi_pooling.py

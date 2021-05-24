@@ -6,6 +6,7 @@ if __name__ == '__main__':
     device = 'cuda:0' if use_cuda else 'cpu'
 
     pooling_layer = scn.Sequential(
+        # dimension = 2, pool size = 3, stride = 2
         scn.MaxPooling(2, 3, 2).to(device),
         scn.SparseToDense(2, 1)
     )
@@ -23,7 +24,7 @@ if __name__ == '__main__':
                     features.append([1])
     locations = torch.LongTensor(locations)
     features = torch.FloatTensor(features).to(device)
-
+    print(locations, features, sep='\n')
     inputSpatialSize = pooling_layer.input_spatial_size(torch.LongTensor([2, 2]))
     input_layer = scn.InputLayer(2, inputSpatialSize)
     input = input_layer([locations,features])
