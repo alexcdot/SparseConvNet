@@ -14,4 +14,4 @@ printf "\nRunning max pooling demo\n\n"
 python3 examples/max_pooling.py
 # Run ROI pooling demo (demo and implementation written by us)
 printf "\nRunning ROI pooling demo\n\n"
-python3 examples/roi_pooling.py
+python3 cpu_demo.py
